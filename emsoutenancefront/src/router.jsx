@@ -16,6 +16,8 @@ import ScheduleManagement from "./pages/admin/ScheduleManagement"
 import AdminSettings from "./pages/admin/AdminSettings"
 import ReportReview from "./pages/professor/ReportReview"
 import ProfessorDefenses from "./pages/professor/ProfessorDefenses"
+import StudentProfile from "./pages/student/StudentProfile"
+import ProfessorProfile from "./pages/professor/ProfessorProfile"
 
 import AdminLogin from "./pages/auth/AdminLogin"
 import StudentLogin from "./pages/auth/StudentLogin"
@@ -30,7 +32,7 @@ const router = createBrowserRouter([
   { path: "/about", element: <About /> },
   { path: "/guide", element: <Guide /> },
   { path: "/contact", element: <Contact /> },
-  
+
   // Routes administrateur
   {
     path: "/admin",
@@ -72,13 +74,21 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  
+
   // Routes étudiant
   {
     path: "/student",
     element: (
       <ProtectedRoute roles={["student"]}>
         <StudentHome />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/student/profile",
+    element: (
+      <ProtectedRoute roles={["student"]}>
+        <StudentProfile />
       </ProtectedRoute>
     ),
   },
@@ -90,13 +100,21 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  
+
   // Routes professeur
   {
     path: "/professor",
     element: (
       <ProtectedRoute roles={["professor"]}>
         <ProfessorHome />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/professor/profile",
+    element: (
+      <ProtectedRoute roles={["professor"]}>
+        <ProfessorProfile />
       </ProtectedRoute>
     ),
   },

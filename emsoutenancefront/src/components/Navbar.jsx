@@ -91,7 +91,7 @@ export default function Navbar() {
   // Get role-specific links
   const getRoleLinks = () => {
     if (!user) return null
-    
+
     switch (user.role) {
       case "admin":
         return (
@@ -199,17 +199,17 @@ export default function Navbar() {
                       {/* En-tête */}
                       <div className="px-4 py-3 border-b border-gray-700">
                         <p className="text-sm font-medium text-white">{user.name || "Utilisateur"}</p>
-                        <p className="text-xs text-gray-400 mt-1">{user.email}</p>
+                        <p className="text-[10px] text-gray-400 mt-1 truncate" title={user.email}>{user.email}</p>
                         <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${getRoleBadgeColor(user.role)}`}>
                           {getRoleLabel(user.role)}
                         </span>
                       </div>
-                      
+
                       {/* Options du menu */}
                       <div className="py-2">
                         {user.role !== "admin" && (
                           <Link
-                            to={getHomeRoute()}
+                            to={user.role === "student" ? "/student/profile" : "/professor/profile"}
                             className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
                             onClick={() => setIsUserMenuOpen(false)}
                           >
@@ -233,10 +233,10 @@ export default function Navbar() {
                           </Link>
                         )}
                       </div>
-                      
+
                       {/* Séparateur */}
                       <div className="border-t border-gray-700"></div>
-                      
+
                       {/* Déconnexion */}
                       <button
                         onClick={() => {
@@ -286,7 +286,6 @@ export default function Navbar() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeLineDasharray="0"
                 strokeWidth={2}
                 d="M4 6h16M4 12h16M4 18h16"
               />
@@ -357,7 +356,7 @@ export default function Navbar() {
                   </div>
                   {user.role !== "admin" && (
                     <Link
-                      to={getHomeRoute()}
+                      to={user.role === "student" ? "/student/profile" : "/professor/profile"}
                       className="block w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded transition-colors mb-2"
                       onClick={() => setIsOpen(false)}
                     >

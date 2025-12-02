@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('matricule')->unique();
             $table->string('filiere');
-            $table->enum('stage_type', ['PFE', 'stage_ete']); // PFE ou stage d'été
+            $table->enum('stage_type', ['PFE', 'stage_ete']); 
             $table->string('phone')->nullable();
             $table->foreignId('encadrant_id')->nullable()->constrained('professors')->onDelete('set null');
             $table->foreignId('rapporteur_id')->nullable()->constrained('professors')->onDelete('set null');

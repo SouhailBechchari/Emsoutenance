@@ -10,6 +10,8 @@ class JuryDefense extends Model
 {
     use HasFactory;
 
+    protected $table = 'jury_defense';
+
     protected $fillable = [
         'defense_id',
         'professor_id',
