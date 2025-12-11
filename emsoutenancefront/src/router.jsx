@@ -14,6 +14,7 @@ import StudentManagement from "./pages/admin/StudentManagement"
 import ProfessorManagement from "./pages/admin/ProfessorManagement"
 import ScheduleManagement from "./pages/admin/ScheduleManagement"
 import AdminSettings from "./pages/admin/AdminSettings"
+import ContactMessages from "./pages/admin/ContactMessages"
 import ReportReview from "./pages/professor/ReportReview"
 import ProfessorDefenses from "./pages/professor/ProfessorDefenses"
 import StudentProfile from "./pages/student/StudentProfile"
@@ -71,6 +72,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute roles={["admin"]}>
         <AdminSettings />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/contact-messages",
+    element: (
+      <ProtectedRoute roles={["admin"]}>
+        <ContactMessages />
       </ProtectedRoute>
     ),
   },

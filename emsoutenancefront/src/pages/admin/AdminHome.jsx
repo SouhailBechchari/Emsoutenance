@@ -126,13 +126,13 @@ export default function AdminHome() {
             </div>
             <div className="bg-gray-800 rounded-lg p-6 text-center shadow-lg hover:bg-gray-700 transition-colors">
               <p className="text-4xl font-extrabold text-purple-400">{stats.upcomingDefenses}</p>
-              <p className="text-gray-300 mt-2">Soutenances à venir</p>
+              <p className="text-gray-300 mt-2">Soutenances à venir (7jrs)</p>
             </div>
           </div>
         )}
 
         {/* Actions rapides */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link to="/admin/students" className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-all border border-gray-700 hover:border-blue-500 transform hover:scale-[1.01]">
             <h2 className="text-xl font-semibold mb-2 flex items-center">
               <span className="mr-2">
@@ -165,6 +165,20 @@ export default function AdminHome() {
               Planification des soutenances
             </h2>
             <p className="text-gray-400 mb-4">Organiser les soutenances, assigner les jurys et les salles</p>
+            <div className="flex justify-end">
+              <span className="text-blue-400 font-medium">Accéder →</span>
+            </div>
+          </Link>
+          <Link to="/admin/contact-messages" className="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-all border border-gray-700 hover:border-yellow-500 transform hover:scale-[1.01]">
+            <h2 className="text-xl font-semibold mb-2 flex items-center">
+              <span className="mr-2">
+                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </span>
+              Messages de contact
+            </h2>
+            <p className="text-gray-400 mb-4">Consulter et gérer les messages reçus depuis le formulaire de contact</p>
             <div className="flex justify-end">
               <span className="text-blue-400 font-medium">Accéder →</span>
             </div>

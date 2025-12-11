@@ -136,7 +136,7 @@ export default function ProfessorManagement() {
     // Filtre de recherche globale
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(professor => 
+      filtered = filtered.filter(professor =>
         professor.user?.name?.toLowerCase().includes(term) ||
         professor.user?.email?.toLowerCase().includes(term) ||
         professor.specialite?.toLowerCase().includes(term) ||
@@ -237,7 +237,7 @@ export default function ProfessorManagement() {
       <main className="md:ml-64 pt-4 pb-8 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Gestion des Professeurs</h1>
-          <button 
+          <button
             className="btn-primary px-4 py-2"
             onClick={() => setShowAddModal(true)}
           >
@@ -370,13 +370,13 @@ export default function ProfessorManagement() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">{professor.phone || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex space-x-2">
-                          <button 
+                          <button
                             className="text-blue-400 hover:text-blue-300"
                             onClick={() => handleEditProfessor(professor)}
                           >
                             Modifier
                           </button>
-                          <button 
+                          <button
                             className="text-red-400 hover:text-red-300"
                             onClick={() => handleDeleteProfessor(professor.id)}
                           >
@@ -401,49 +401,49 @@ export default function ProfessorManagement() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Nom complet *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newProfessor.name}
-                    onChange={(e) => setNewProfessor({...newProfessor, name: e.target.value})}
+                    onChange={(e) => setNewProfessor({ ...newProfessor, name: e.target.value })}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Email *</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newProfessor.email}
-                    onChange={(e) => setNewProfessor({...newProfessor, email: e.target.value})}
+                    onChange={(e) => setNewProfessor({ ...newProfessor, email: e.target.value })}
                   />
                 </div>
                 {!showEditModal && (
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">Mot de passe *</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                       value={newProfessor.password}
-                      onChange={(e) => setNewProfessor({...newProfessor, password: e.target.value})}
+                      onChange={(e) => setNewProfessor({ ...newProfessor, password: e.target.value })}
                     />
                   </div>
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Spécialité</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newProfessor.specialite}
-                    onChange={(e) => setNewProfessor({...newProfessor, specialite: e.target.value})}
+                    onChange={(e) => setNewProfessor({ ...newProfessor, specialite: e.target.value })}
                     placeholder="Ex: Informatique"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Type de rôle</label>
-                  <select 
+                  <select
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newProfessor.type}
-                    onChange={(e) => setNewProfessor({...newProfessor, type: e.target.value})}
+                    onChange={(e) => setNewProfessor({ ...newProfessor, type: e.target.value })}
                   >
                     <option value="">Sélectionner</option>
                     <option value="encadrant">Encadrant</option>
@@ -454,15 +454,15 @@ export default function ProfessorManagement() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Téléphone</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newProfessor.phone}
-                    onChange={(e) => setNewProfessor({...newProfessor, phone: e.target.value})}
+                    onChange={(e) => setNewProfessor({ ...newProfessor, phone: e.target.value })}
                   />
                 </div>
                 <div className="flex justify-end space-x-3 pt-4">
-                  <button 
+                  <button
                     className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
                     onClick={() => {
                       setShowAddModal(false);
@@ -480,11 +480,11 @@ export default function ProfessorManagement() {
                   >
                     Annuler
                   </button>
-                  <button 
+                  <button
                     className="btn-primary px-4 py-2"
                     onClick={showEditModal ? handleUpdateProfessor : handleAddProfessor}
                     disabled={
-                      !newProfessor.name || 
+                      !newProfessor.name ||
                       !newProfessor.email ||
                       (!showEditModal && !newProfessor.password)
                     }
@@ -493,9 +493,9 @@ export default function ProfessorManagement() {
                   </button>
                 </div>
               </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </main>
     </div>
   );

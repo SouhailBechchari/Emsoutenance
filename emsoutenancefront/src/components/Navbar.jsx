@@ -269,9 +269,7 @@ export default function Navbar() {
                 <Link to="/contact" className="text-[#a0aec0] hover:text-white transition-colors">
                   Contact
                 </Link>
-                <a href="#features" className="text-[#a0aec0] hover:text-white transition-colors">
-                  Fonctionnalités
-                </a>
+
                 <Link to="/login" className="btn-primary relative overflow-hidden">
                   <span className="relative z-10">Se connecter</span>
                   <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" />

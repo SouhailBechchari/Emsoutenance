@@ -16,6 +16,11 @@ class DefenseController extends Controller
      */
     public function index(Request $request)
     {
+        // Mettre à jour automatiquement les soutenances passées
+        Defense::where('status', 'scheduled')
+            ->where('scheduled_at', '<', now())
+            ->update(['status' => 'completed']);
+
         $query = Defense::with([
             'student.user',
             'report',

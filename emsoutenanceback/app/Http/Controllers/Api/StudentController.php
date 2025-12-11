@@ -99,6 +99,11 @@ class StudentController extends Controller
             return response()->json(['message' => 'Profil étudiant non trouvé'], 404);
         }
 
+        // Mettre à jour automatiquement les soutenances passées
+        \App\Models\Defense::where('status', 'scheduled')
+            ->where('scheduled_at', '<', now())
+            ->update(['status' => 'completed']);
+
         $defense = $student->defenses()->with([
             'juryMembers.professor.user',
             'report'

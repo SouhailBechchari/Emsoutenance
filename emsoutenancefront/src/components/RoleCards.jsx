@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom"
 import { ProfessorBoardIcon, ShieldIcon, StudentCapIcon } from "./icons/ModernIcons"
 
 export default function RoleCards() {
+  const navigate = useNavigate()
+
   const roles = [
     {
       title: "Administrateur",
@@ -8,6 +11,7 @@ export default function RoleCards() {
       color: "from-[#0066ff] to-[#0052cc]",
       features: ["Gestion des utilisateurs", "Affectation des jurys", "Planification", "Rapports"],
       delay: "0s",
+      loginPath: "/login/admin",
     },
     {
       title: "Étudiant",
@@ -15,6 +19,7 @@ export default function RoleCards() {
       color: "from-[#00d4ff] to-[#0099cc]",
       features: ["Dépôt de rapport", "Suivi de soutenance", "Consultation jury", "Notifications"],
       delay: "0.2s",
+      loginPath: "/login/student",
     },
     {
       title: "Professeur",
@@ -22,6 +27,7 @@ export default function RoleCards() {
       color: "from-[#ff6b35] to-[#ff4500]",
       features: ["Consultation dossiers", "Ajout remarques", "Validation", "Planning"],
       delay: "0.4s",
+      loginPath: "/login/professor",
     },
   ]
 
@@ -53,7 +59,10 @@ export default function RoleCards() {
                     </li>
                   ))}
                 </ul>
-                <button className="w-full bg-white text-gray-900 font-semibold py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={() => navigate(role.loginPath)}
+                  className="w-full bg-white text-gray-900 font-semibold py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
                   Accéder
                 </button>
               </div>

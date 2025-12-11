@@ -75,13 +75,13 @@ class ProfessorController extends Controller
             }
 
             $studentIds = collect();
-            
+
             try {
                 $studentIds = $studentIds->merge($professor->studentsEncadres()->pluck('id'));
             } catch (\Exception $e) {
                 // Ignorer les erreurs
             }
-            
+
             try {
                 $studentIds = $studentIds->merge($professor->studentsRapportes()->pluck('id'));
             } catch (\Exception $e) {
@@ -131,7 +131,7 @@ class ProfessorController extends Controller
         $remark = Remark::create([
             'report_id' => $report->id,
             'professor_id' => $professor->id,
-            'content' => $request->content,
+            'content' => $request->input('content'),
         ]);
 
         // Mettre à jour le statut du rapport si nécessaire
@@ -178,6 +178,11 @@ class ProfessorController extends Controller
             if (!$professor) {
                 return response()->json([], 200);
             }
+
+            // Mettre à jour automatiquement les soutenances passées
+            Defense::where('status', 'scheduled')
+                ->where('scheduled_at', '<', now())
+                ->update(['status' => 'completed']);
 
             try {
                 $defenseIds = $professor->juryDefenses()->pluck('defense_id');

@@ -59,27 +59,7 @@ export default function Hero() {
           </div>
           
           {/* École Photos Section */}
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Découvrez notre école</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-800 rounded-lg overflow-hidden h-48 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  
-                  <span>Photo Campus Casablanca</span>
-                </div>
-              </div>
-              <div className="bg-gray-800 rounded-lg overflow-hidden h-48 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  <span>Photo Campus Rabat</span>
-                </div>
-              </div>
-              <div className="bg-gray-800 rounded-lg overflow-hidden h-48 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  <span>Photo Laboratoires</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </section>

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 // Routes publiques
 Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
 Route::post('/register', [App\Http\Controllers\Api\AuthController::class, 'register']);
+Route::post('/contact', [App\Http\Controllers\Api\ContactController::class, 'store']);
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {
@@ -48,22 +49,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         // Gestion des étudiants
         Route::apiResource('students', App\Http\Controllers\Api\Admin\StudentController::class);
-        
+
         // Gestion des professeurs
         Route::apiResource('professors', App\Http\Controllers\Api\Admin\ProfessorController::class);
-        
+
         // Gestion des rapports
         Route::get('/reports', [App\Http\Controllers\Api\Admin\ReportController::class, 'index']);
         Route::post('/reports/{report}/validate', [App\Http\Controllers\Api\Admin\ReportController::class, 'validateReport']);
-        
+
         // Gestion des soutenances
         Route::apiResource('defenses', App\Http\Controllers\Api\Admin\DefenseController::class);
         Route::post('/defenses/{defense}/jury', [App\Http\Controllers\Api\Admin\DefenseController::class, 'assignJury']);
-        
+
         // Planning
         Route::get('/schedule', [App\Http\Controllers\Api\Admin\ScheduleController::class, 'index']);
         Route::get('/schedule/by-filiere', [App\Http\Controllers\Api\Admin\ScheduleController::class, 'byFiliere']);
         Route::get('/schedule/by-encadrant', [App\Http\Controllers\Api\Admin\ScheduleController::class, 'byEncadrant']);
+
+        // Gestion des messages de contact
+        Route::get('/contact-messages', [App\Http\Controllers\Api\Admin\ContactMessageController::class, 'index']);
+        Route::get('/contact-messages/{id}', [App\Http\Controllers\Api\Admin\ContactMessageController::class, 'show']);
+        Route::post('/contact-messages/{id}/mark-read', [App\Http\Controllers\Api\Admin\ContactMessageController::class, 'markAsRead']);
+        Route::post('/contact-messages/{id}/mark-unread', [App\Http\Controllers\Api\Admin\ContactMessageController::class, 'markAsUnread']);
+        Route::delete('/contact-messages/{id}', [App\Http\Controllers\Api\Admin\ContactMessageController::class, 'destroy']);
     });
 });
 
