@@ -20,7 +20,7 @@ export default function StudentManagement() {
   const [newStudent, setNewStudent] = useState({
     name: "",
     email: "",
-    password: "",
+    password: "Student123",
     matricule: "",
     filiere: "",
     stage_type: "PFE",
@@ -64,7 +64,7 @@ export default function StudentManagement() {
       setNewStudent({
         name: "",
         email: "",
-        password: "",
+        password: "Student123",
         matricule: "",
         filiere: "",
         stage_type: "PFE",
@@ -335,7 +335,6 @@ export default function StudentManagement() {
             </select>
           </div>
 
-          {/* Filtre par encadrant */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Encadrant</label>
             <select
@@ -353,7 +352,6 @@ export default function StudentManagement() {
           </div>
         </div>
 
-        {/* Bouton réinitialiser les filtres */}
         {(searchTerm || filterFiliere || filterStageType || filterEncadrant) && (
           <div className="mt-4 flex justify-end">
             <button
@@ -366,7 +364,7 @@ export default function StudentManagement() {
           </div>
         )}
 
-        {/* Compteur de résultats */}
+     
         <div className="mt-4 text-sm text-gray-400">
           {filteredAndSortedStudents.length} étudiant{filteredAndSortedStudents.length !== 1 ? 's' : ''} trouvé{filteredAndSortedStudents.length !== 1 ? 's' : ''}
           {filteredAndSortedStudents.length !== students.length && (
@@ -473,7 +471,7 @@ export default function StudentManagement() {
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Mot de passe *</label>
                   <input 
-                    type="password" 
+                    type="text" 
                     className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
                     value={newStudent.password}
                     onChange={(e) => setNewStudent({...newStudent, password: e.target.value})}

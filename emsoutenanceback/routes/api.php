@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         // Gestion des étudiants
         Route::apiResource('students', App\Http\Controllers\Api\Admin\StudentController::class);
-
+        
         // Gestion des professeurs
         Route::apiResource('professors', App\Http\Controllers\Api\Admin\ProfessorController::class);
 
