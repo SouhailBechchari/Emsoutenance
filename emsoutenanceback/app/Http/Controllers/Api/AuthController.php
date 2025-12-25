@@ -55,29 +55,46 @@ class AuthController extends Controller
             'stage_type' => 'required|in:PFE,stage_ete',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'student',
-        ]);
+        try {
+            // Utilisation d'une transaction pour garantir l'intégrité des données
+            // Si la création de l'étudiant échoue, l'utilisateur ne sera pas créé non plus
+            $result = \DB::transaction(function () use ($request) {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role' => 'student',
+                ]);
 
-        Student::create([
-            'user_id' => $user->id,
-            'matricule' => $request->matricule,
-            'filiere' => $request->filiere,
-            'stage_type' => $request->stage_type,
-        ]);
+                Student::create([
+                    'user_id' => $user->id,
+                    'matricule' => $request->matricule,
+                    'filiere' => $request->filiere,
+                    'stage_type' => $request->stage_type,
+                ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+                $token = $user->createToken('auth_token')->plainTextToken;
 
-        $user->load('student');
+                $user->load('student');
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ], 201);
+                return [
+                    'user' => $user,
+                    'token' => $token
+                ];
+            });
+
+            return response()->json([
+                'access_token' => $result['token'],
+                'token_type' => 'Bearer',
+                'user' => $result['user'],
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de l\'inscription',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

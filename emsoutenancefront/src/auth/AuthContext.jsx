@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   
   const logout = async () => {
     try {
-      // Appeler l'API de déconnexion si l'utilisateur est connecté
+      // call l'API de déconnexion si l'utilisateur est connecté
       const token = localStorage.getItem('access_token')
       if (token) {
         await api.post('/logout')

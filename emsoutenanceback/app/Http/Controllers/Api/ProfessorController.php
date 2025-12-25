@@ -23,6 +23,9 @@ class ProfessorController extends Controller
     /**
      * Obtenir la liste des étudiants selon le rôle du professeur
      */
+    /**
+     * Obtenir la liste des étudiants selon le rôle du professeur
+     */
     public function getStudents(Request $request)
     {
         try {
@@ -32,33 +35,31 @@ class ProfessorController extends Controller
                 return response()->json([], 200);
             }
 
+            // Récupération optimisée avec les relations Eloquent
+            // On charge les étudiants encadrés ET rapportés en une seule logique propre
             $students = collect();
 
-            // Étudiants encadrés
-            try {
-                $encadres = $professor->studentsEncadres()->with('user')->get();
-                $students = $students->merge($encadres->map(function ($student) {
-                    $student->relation_type = 'encadrant';
-                    return $student;
-                }));
-            } catch (\Exception $e) {
-                // Ignorer les erreurs et continuer
-            }
+            // 1. Étudiants encadrés
+            $encadres = $professor->studentsEncadres()->with('user')->get();
+            $students = $students->merge($encadres->map(function ($student) {
+                $student->relation_type = 'encadrant';
+                return $student;
+            }));
 
-            // Étudiants rapportés
-            try {
-                $rapportes = $professor->studentsRapportes()->with('user')->get();
-                $students = $students->merge($rapportes->map(function ($student) {
-                    $student->relation_type = 'rapporteur';
-                    return $student;
-                }));
-            } catch (\Exception $e) {
-                // Ignorer les erreurs et continuer
-            }
+            // 2. Étudiants rapportés
+            $rapportes = $professor->studentsRapportes()->with('user')->get();
+            $students = $students->merge($rapportes->map(function ($student) {
+                $student->relation_type = 'rapporteur';
+                return $student;
+            }));
 
+            // Utilisation de unique() pour éviter les doublons si un prof a les deux rôles (cas rare mais possible)
             return response()->json($students->unique('id')->values());
+
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur lors de la récupération des étudiants', 'error' => $e->getMessage()], 500);
+            // Log l'erreur pour le débogage serveur, mais retour propre au client
+            \Log::error('Erreur getStudents: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors de la récupération des étudiants'], 500);
         }
     }
 
@@ -170,6 +171,9 @@ class ProfessorController extends Controller
     /**
      * Obtenir les soutenances du professeur
      */
+    /**
+     * Obtenir les soutenances du professeur
+     */
     public function getDefenses(Request $request)
     {
         try {
@@ -179,17 +183,11 @@ class ProfessorController extends Controller
                 return response()->json([], 200);
             }
 
-            // Mettre à jour automatiquement les soutenances passées
-            Defense::where('status', 'scheduled')
-                ->where('scheduled_at', '<', now())
-                ->update(['status' => 'completed']);
+            // Mise à jour "Lazy" des statuts des soutenances passées
+            // Cette méthode est appelée ici car nous n'avons pas de CRON job sur le serveur d'hébergement
+            $this->updatePastDefensesStatus();
 
-            try {
-                $defenseIds = $professor->juryDefenses()->pluck('defense_id');
-            } catch (\Exception $e) {
-                // Si erreur, retourner un tableau vide
-                return response()->json([], 200);
-            }
+            $defenseIds = $professor->juryDefenses()->pluck('defense_id');
 
             // Si aucune défense, retourner un tableau vide
             if ($defenseIds->isEmpty()) {
@@ -203,8 +201,20 @@ class ProfessorController extends Controller
 
             return response()->json($defenses);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur lors de la récupération des soutenances', 'error' => $e->getMessage()], 500);
+            \Log::error('Erreur getDefenses: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors de la récupération des soutenances'], 500);
         }
+    }
+
+    /**
+     * Helper pour mettre à jour les statuts des soutenances passées
+     * Pattern: Lazy Loading Update
+     */
+    private function updatePastDefensesStatus()
+    {
+        Defense::where('status', 'scheduled')
+            ->where('scheduled_at', '<', now())
+            ->update(['status' => 'completed']);
     }
 }
 
