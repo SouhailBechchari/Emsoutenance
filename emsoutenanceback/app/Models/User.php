@@ -8,6 +8,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * Modèle Utilisateur (User)
+ *
+ * C'est le cœur de l'authentification. Il représente n'importe quel acteur du système
+ * (Admin, Prof, Étudiant).
+ *
+ * - Pour un Étudiant : Il est lié à un profil `Student` (via `student()`)
+ * - Pour un Professeur : Il est lié à un profil `Professor` (via `professor()`)
+ * - Pour un Admin : Il a simplement le rôle 'admin'.
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

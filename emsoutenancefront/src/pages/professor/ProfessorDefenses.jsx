@@ -28,13 +28,18 @@ export default function ProfessorDefenses() {
     }
   };
 
+  /**
+   * Helper pour déterminer et afficher le rôle de l'utilisateur connecté dans cette soutenance.
+   * On cherche l'entrée correspondant à l'email du prof connecté dans la liste des membres du jury.
+   */
   const getRoleBadge = (defense) => {
     const juryMembers = defense.jury_members || [];
     const currentUserEmail = user?.email;
-    
+
+    // Recherche du membre correspondant à l'utilisateur actuel
     const juryMember = juryMembers.find(jm => jm.professor?.user?.email === currentUserEmail);
-    if (!juryMember) return null;
-    
+    if (!juryMember) return null; // Ne devrait pas arriver si on ne liste que SES soutenances
+
     const role = juryMember.role;
     const colors = {
       encadrant: 'bg-blue-800 text-blue-300',
@@ -42,14 +47,14 @@ export default function ProfessorDefenses() {
       examinateur: 'bg-green-800 text-green-300',
       president: 'bg-red-800 text-red-300'
     };
-    
+
     const labels = {
       encadrant: 'Encadrant',
       rapporteur: 'Rapporteur',
       examinateur: 'Examinateur',
       president: 'Président'
     };
-    
+
     return (
       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colors[role] || 'bg-gray-800 text-gray-300'}`}>
         {labels[role] || role}
@@ -75,22 +80,25 @@ export default function ProfessorDefenses() {
     return labels[status] || status;
   };
 
+  // --- Logique de filtrage ---
   const filteredDefenses = defenses.filter(defense => {
     if (filter === "all") return true;
-    
+
+    // On compare les dates (attention aux formats de date string vs Date object)
     const defenseDate = new Date(defense.scheduled_at);
     const now = new Date();
-    
+
     if (filter === "upcoming") {
-      return defenseDate >= now;
+      return defenseDate >= now; // Soutenances futures
     }
     if (filter === "past") {
-      return defenseDate < now;
+      return defenseDate < now; // Soutenances passées
     }
     return true;
   });
 
-  // Trier par date
+  // --- Logique de tri ---
+  // On trie toujours par date croissante (la plus proche en premier)
   const sortedDefenses = [...filteredDefenses].sort((a, b) => {
     return new Date(a.scheduled_at) - new Date(b.scheduled_at);
   });
@@ -111,31 +119,28 @@ export default function ProfessorDefenses() {
           <div className="flex gap-4">
             <button
               onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded transition-colors ${
-                filter === "all" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded transition-colors ${filter === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
             >
               Toutes
             </button>
             <button
               onClick={() => setFilter("upcoming")}
-              className={`px-4 py-2 rounded transition-colors ${
-                filter === "upcoming" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded transition-colors ${filter === "upcoming"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
             >
               À venir
             </button>
             <button
               onClick={() => setFilter("past")}
-              className={`px-4 py-2 rounded transition-colors ${
-                filter === "past" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded transition-colors ${filter === "past"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
             >
               Passées
             </button>

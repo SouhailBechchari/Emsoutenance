@@ -1,35 +1,36 @@
 import { useNavigate } from "react-router-dom"
 import { ProfessorBoardIcon, ShieldIcon, StudentCapIcon } from "./icons/ModernIcons"
 
+// Données statiques définies en dehors du composant pour simplifier la vue
+const ROLES = [
+  {
+    title: "Administrateur",
+    icon: ShieldIcon,
+    color: "from-[#0066ff] to-[#0052cc]",
+    features: ["Gestion des utilisateurs", "Affectation des jurys", "Planification", "Rapports"],
+    delay: "0s",
+    loginPath: "/login/admin",
+  },
+  {
+    title: "Étudiant",
+    icon: StudentCapIcon,
+    color: "from-[#00d4ff] to-[#0099cc]",
+    features: ["Dépôt de rapport", "Suivi de soutenance", "Consultation jury", "Notifications"],
+    delay: "0.2s",
+    loginPath: "/login/student",
+  },
+  {
+    title: "Professeur",
+    icon: ProfessorBoardIcon,
+    color: "from-[#ff6b35] to-[#ff4500]",
+    features: ["Consultation dossiers", "Ajout remarques", "Validation", "Planning"],
+    delay: "0.4s",
+    loginPath: "/login/professor",
+  },
+]
+
 export default function RoleCards() {
   const navigate = useNavigate()
-
-  const roles = [
-    {
-      title: "Administrateur",
-      icon: ShieldIcon,
-      color: "from-[#0066ff] to-[#0052cc]",
-      features: ["Gestion des utilisateurs", "Affectation des jurys", "Planification", "Rapports"],
-      delay: "0s",
-      loginPath: "/login/admin",
-    },
-    {
-      title: "Étudiant",
-      icon: StudentCapIcon,
-      color: "from-[#00d4ff] to-[#0099cc]",
-      features: ["Dépôt de rapport", "Suivi de soutenance", "Consultation jury", "Notifications"],
-      delay: "0.2s",
-      loginPath: "/login/student",
-    },
-    {
-      title: "Professeur",
-      icon: ProfessorBoardIcon,
-      color: "from-[#ff6b35] to-[#ff4500]",
-      features: ["Consultation dossiers", "Ajout remarques", "Validation", "Planning"],
-      delay: "0.4s",
-      loginPath: "/login/professor",
-    },
-  ]
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
@@ -42,7 +43,7 @@ export default function RoleCards() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {roles.map((role, index) => (
+          {ROLES.map((role, index) => (
             <div key={index} className="animate-fade-in-up" style={{ animationDelay: role.delay }}>
               <div
                 className={`bg-gradient-to-br ${role.color} p-8 rounded-2xl text-white card glass-hover group cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.25)]`}

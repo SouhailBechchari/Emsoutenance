@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * Modèle Étudiant
+ *
+ * Contient les informations académiques spécifiques :
+ * - Matricule, Filière
+ * - Type de stage (PFE/Été)
+ * - Relations vers Encadrant et Rapporteur (qui sont des `Professor`)
+ *
+ * Il est toujours lié à un `User` pour la connexion.
+ */
 class Student extends Model
 {
     use HasFactory;

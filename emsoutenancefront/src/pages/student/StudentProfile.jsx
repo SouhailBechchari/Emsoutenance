@@ -3,6 +3,13 @@ import { useAuth } from "../../auth/AuthContext";
 import Navbar from "../../components/Navbar";
 import api from "../../services/api";
 
+/**
+ * Page de Profil Étudiant
+ * 
+ * Permet à l'étudiant de :
+ * - Voir ses informations académiques (Matricule, Filière)
+ * - Changer son mot de passe
+ */
 export default function StudentProfile() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);

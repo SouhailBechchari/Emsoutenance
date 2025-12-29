@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Modèle Soutenance (Defense)
+ *
+ * Représente l'événement de soutenance.
+ * - Lie un Étudiant, un Rapport validé et une date/lieu.
+ * - Est associé à un Jury (`juryMembers`) composé de plusieurs `Professor`.
+ */
 class Defense extends Model
 {
     use HasFactory;

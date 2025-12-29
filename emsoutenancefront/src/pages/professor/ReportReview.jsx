@@ -3,19 +3,30 @@ import { useAuth } from "../../auth/AuthContext";
 import Navbar from "../../components/Navbar";
 import api from "../../services/api";
 
+/**
+ * Page de Gestion des Rapports et Étudiants
+ * 
+ * Cette page est le cœur de l'activité du professeur. Elle permet de :
+ * 1. Voir la liste des étudiants encadrés
+ * 2. Voir la liste des étudiants pour lesquels il est rapporteur
+ * 3. Valider des rapports ou demander des corrections
+ * 4. Ajouter des remarques textuelles
+ */
 export default function ReportReview() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("encadrant");
+
+  // États de l'interface
+  const [activeTab, setActiveTab] = useState("encadrant"); // 'encadrant', 'rapporteur' ou 'jury'
   const [loading, setLoading] = useState(true);
 
+  // Stockage des listes d'étudiants triées par catégorie
   const [students, setStudents] = useState({
     encadrant: [],
     rapporteur: [],
     jury: []
   });
-  const [reports, setReports] = useState([]);
-  const [defenses, setDefenses] = useState([]);
 
+  // États pour les modales ou actions
   const [selectedReport, setSelectedReport] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -28,100 +39,95 @@ export default function ReportReview() {
     try {
       setLoading(true);
 
-      // Récupérer les étudiants
-      const studentsResponse = await api.get('/professors/students');
-      const allStudents = studentsResponse.data || [];
+      // --- Optimisation : Lancement des requêtes en parallèle ---
+      // On récupère toutes les données nécessaires en une seule fois
+      const [studentsResponse, reportsResponse, defensesResponse] = await Promise.all([
+        api.get('/professors/students'),
+        api.get('/professors/reports'),
+        api.get('/professors/defenses')
+      ]);
 
-      // Séparer par rôle
+      const allStudents = studentsResponse.data || [];
+      const allReports = reportsResponse.data || [];
+      const allDefenses = defensesResponse.data || [];
+
+      // --- 1. Séparation des étudiants par rôle (Encadrant vs Rapporteur) ---
       const encadrantStudents = allStudents.filter(s => s.relation_type === 'encadrant');
       const rapporteurStudents = allStudents.filter(s => s.relation_type === 'rapporteur');
 
-      // Récupérer les rapports
-      const reportsResponse = await api.get('/professors/reports');
-      const allReports = reportsResponse.data || [];
-      setReports(allReports);
+      // --- 2. Enrichissement des données Étudiants ---
+      // On ajoute l'info du dernier rapport à chaque étudiant pour l'afficher directement dans le tableau
+      const enrichStudentData = (studentList) => {
+        return studentList.map(student => {
+          const studentReports = allReports.filter(r => r.student_id === student.id);
+          // On prend le plus récent
+          const latestReport = studentReports.length > 0 ? studentReports[0] : null;
 
-      // Récupérer les soutenances (pour l'onglet jury)
-      const defensesResponse = await api.get('/professors/defenses');
-      const allDefenses = defensesResponse.data || [];
-      setDefenses(allDefenses);
+          return {
+            ...student,
+            report: latestReport,
+            reportStatus: latestReport ? latestReport.status : 'Non déposé',
+            reportDate: latestReport ? latestReport.submitted_at : null
+          };
+        });
+      };
 
-      // Enrichir les étudiants avec leurs rapports
-      const encadrantWithReports = encadrantStudents.map(student => {
-        const studentReports = allReports.filter(r => r.student_id === student.id);
-        const latestReport = studentReports.length > 0 ? studentReports[0] : null;
-        return {
-          ...student,
-          report: latestReport,
-          reportStatus: latestReport ? latestReport.status : 'Non déposé',
-          reportDate: latestReport ? latestReport.submitted_at : null,
-          defenseDate: null // À récupérer depuis les défenses si nécessaire
-        };
-      });
-
-      const rapporteurWithReports = rapporteurStudents.map(student => {
-        const studentReports = allReports.filter(r => r.student_id === student.id);
-        const latestReport = studentReports.length > 0 ? studentReports[0] : null;
-        return {
-          ...student,
-          report: latestReport,
-          reportStatus: latestReport ? latestReport.status : 'Non déposé',
-          reportDate: latestReport ? latestReport.submitted_at : null,
-          defenseDate: null
-        };
-      });
-
-      // Préparer les données pour l'onglet jury
-      const juryData = allDefenses.map(defense => {
-        const juryMembers = defense.jury_members || [];
-        const currentUserEmail = user?.email;
-        const juryMember = juryMembers.find(jm => jm.professor?.user?.email === currentUserEmail);
-
-        return {
-          id: defense.student?.id,
-          name: defense.student?.user?.name,
-          filiere: defense.student?.filiere,
-          role: juryMember?.role || 'N/A',
-          reportStatus: defense.report?.status === 'validated' ? 'Validé' : 'En attente',
-          defenseDate: defense.scheduled_at
-        };
-      });
+      // --- 3. Préparation des données pour l'onglet Jury ---
+      // Transforme les défenses en format "étudiant" pour utiliser le même composant de tableau
+      const juryData = allDefenses.map(defense => ({
+        id: defense.student?.id,
+        name: defense.student?.user?.name,
+        matricule: defense.student?.matricule,
+        filiere: defense.student?.filiere,
+        role: 'Membre du Jury', // Simplification
+        reportStatus: defense.report?.status === 'validated' ? 'Validé' : 'En attente',
+        defenseDate: defense.scheduled_at
+      }));
 
       setStudents({
-        encadrant: encadrantWithReports,
-        rapporteur: rapporteurWithReports,
+        encadrant: enrichStudentData(encadrantStudents),
+        rapporteur: enrichStudentData(rapporteurStudents),
         jury: juryData
       });
+
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      alert('Erreur lors du chargement des données');
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Ouvre le fichier PDF du rapport dans un nouvel onglet
+   */
   const handleViewReport = (student) => {
     if (student.report?.file_path) {
-      // Construit l'URL complète vers le backend
+      // Astuce : on reconstruit l'URL complète du fichier stocké
       const backendUrl = import.meta.env.VITE_API_BASE_URL
         ? import.meta.env.VITE_API_BASE_URL.replace('/api', '')
         : 'http://localhost:8000';
 
       window.open(`${backendUrl}/storage/${student.report.file_path}`, '_blank');
     } else {
-      alert('Aucun rapport disponible pour cet étudiant');
+      alert('Aucun fichier disponible.');
     }
   };
 
+  /**
+   * Prépare l'ajout d'une remarque
+   */
   const handleAddFeedback = (student) => {
     if (!student.report) {
-      alert('Aucun rapport disponible pour cet étudiant');
+      alert("L'étudiant n'a pas encore soumis de rapport.");
       return;
     }
     setSelectedReport(student.report);
     setShowFeedbackModal(true);
   };
 
+  /**
+   * Envoie la remarque au serveur
+   */
   const handleSubmitFeedback = async () => {
     if (!selectedReport || !feedback.trim()) return;
 
@@ -130,166 +136,130 @@ export default function ReportReview() {
         content: feedback
       });
 
-      alert('Remarques ajoutées avec succès');
+      alert('Remarque ajoutée avec succès !');
       setFeedback("");
       setShowFeedbackModal(false);
-      fetchData(); // Recharger les données
+      fetchData(); // Rafraîchir pour voir les changements si besoin
     } catch (error) {
-      console.error('Erreur lors de l\'ajout des remarques:', error);
-      alert('Erreur lors de l\'ajout des remarques');
+      console.error('Erreur:', error);
+      alert("Erreur lors de l'enregistrement de la remarque.");
     }
   };
 
+  /**
+   * Valide le rapport (Action réservée au Rapporteur généralement)
+   */
   const handleValidateReport = async (student) => {
-    if (!student.report) {
-      alert('Aucun rapport disponible pour cet étudiant');
-      return;
-    }
-
-    if (!window.confirm('Êtes-vous sûr de vouloir valider ce rapport ?')) {
-      return;
-    }
+    if (!confirm("Voulez-vous valider définitivement ce rapport ? Cette action autorisera la soutenance.")) return;
 
     try {
       await api.post(`/professors/reports/${student.report.id}/validate`);
-      alert('Rapport validé avec succès');
-      fetchData(); // Recharger les données
+      alert('Rapport validé !');
+      fetchData(); // Mise à jour immédiate de l'interface
     } catch (error) {
-      console.error('Erreur lors de la validation:', error);
-      const errorMsg = error.response?.data?.message || 'Erreur lors de la validation du rapport';
-      alert(errorMsg);
+      console.error('Erreur:', error);
+      alert("Erreur lors de la validation.");
     }
   };
 
+  // Petits helpers pour le style des badges statuts
   const getStatusLabel = (status) => {
-    const statusMap = {
+    const map = {
       'pending': 'En attente',
       'validated': 'Validé',
       'need_correction': 'Correction demandée',
       'rejected': 'Rejeté'
     };
-    return statusMap[status] || status;
+    return map[status] || status;
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'validated': 'bg-green-900 text-green-300',
-      'pending': 'bg-yellow-900 text-yellow-300',
-      'need_correction': 'bg-red-900 text-red-300',
-      'rejected': 'bg-red-900 text-red-300'
+  const getStatusBadgeClass = (status) => {
+    const map = {
+      'validated': 'bg-green-600',
+      'pending': 'bg-yellow-600',
+      'need_correction': 'bg-red-600',
+      'rejected': 'bg-red-800'
     };
-    return badges[status] || 'bg-gray-700 text-gray-300';
+    return map[status] || 'bg-gray-600';
   };
 
-  const renderStudentList = (roleStudents) => {
-    if (loading) {
-      return (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Chargement des données...</p>
-        </div>
-      );
-    }
-
-    if (roleStudents.length === 0) {
-      return (
-        <div className="text-center py-8 text-gray-400">
-          Aucun étudiant assigné pour ce rôle.
-        </div>
-      );
-    }
+  // --- RENDU DU TABLEAU ---
+  const renderStudentList = (list) => {
+    if (list.length === 0) return <div className="p-8 text-center text-gray-500 bg-gray-800 rounded">Aucun étudiant dans cette catégorie.</div>;
 
     return (
-      <div className="bg-gray-800 rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-700">
-          <thead className="bg-gray-700">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Matricule</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Nom</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Filière</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Statut</th>
-              {activeTab === "jury" && (
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Rôle</th>
-              )}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date soutenance</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
+      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg border border-gray-700">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-900/50 text-gray-400 text-sm uppercase border-b border-gray-700">
+              <th className="p-4">Matricule</th>
+              <th className="p-4">Nom</th>
+              <th className="p-4">Filière</th>
+              <th className="p-4">Statut Rapport</th>
+              <th className="p-4">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
-            {roleStudents.map((student) => {
-              const reportStatus = student.report?.status || (student.reportStatus === 'Non déposé' ? null : student.reportStatus);
-              const hasReport = student.report || (reportStatus && reportStatus !== 'Non déposé');
-
-              return (
-                <tr key={student.id} className="hover:bg-gray-700 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{student.matricule || student.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{student.user?.name || student.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">{student.filiere}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {reportStatus ? (
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadge(reportStatus)}`}>
-                        {getStatusLabel(reportStatus)}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs rounded-full bg-gray-700 text-gray-300">
-                        Non déposé
-                      </span>
+          <tbody className="text-gray-200">
+            {list.map((student) => (
+              <tr key={student.id} className="border-b border-gray-700 hover:bg-gray-700/50 transition-colors">
+                <td className="p-4 font-mono text-sm text-gray-400">{student.matricule || "N/A"}</td>
+                <td className="p-4 font-medium text-white">{student.user?.name || student.name}</td>
+                <td className="p-4">{student.filiere}</td>
+                <td className="p-4">
+                  <span className={`px-2 py-1 rounded text-xs text-white ${getStatusBadgeClass(student.reportStatus)}`}>
+                    {getStatusLabel(student.reportStatus)}
+                  </span>
+                </td>
+                <td className="p-4">
+                  <div className="flex gap-2">
+                    {/* Bouton VOIR - toujours visible si un rapport existe */}
+                    {(student.report || student.reportStatus !== 'Non déposé') && (
+                      <button
+                        onClick={() => handleViewReport(student)}
+                        className="px-3 py-1 bg-blue-900/50 text-blue-300 rounded hover:bg-blue-800 text-sm border border-blue-800"
+                      >
+                        Voir
+                      </button>
                     )}
-                  </td>
-                  {activeTab === "jury" && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className="px-2 py-1 text-xs rounded-full bg-purple-900 text-purple-300">
-                        {student.role}
-                      </span>
-                    </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {student.defenseDate ? new Date(student.defenseDate).toLocaleDateString('fr-FR') : "Non planifiée"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex space-x-2">
-                      {hasReport && (
+
+                    {/* Actions Spécifiques RAPPORTEUR */}
+                    {activeTab === 'rapporteur' && student.reportStatus === 'pending' && (
+                      <>
                         <button
-                          className="text-blue-400 hover:text-blue-300"
-                          onClick={() => handleViewReport(student)}
+                          onClick={() => handleValidateReport(student)}
+                          className="px-3 py-1 bg-green-900/50 text-green-300 rounded hover:bg-green-800 text-sm border border-green-800"
                         >
-                          Voir rapport
+                          Valider
                         </button>
-                      )}
-                      {activeTab === "rapporteur" && reportStatus === "pending" && (
-                        <>
-                          <button
-                            className="text-green-400 hover:text-green-300"
-                            onClick={() => handleValidateReport(student)}
-                          >
-                            Valider
-                          </button>
-                          <button
-                            className="text-yellow-400 hover:text-yellow-300"
-                            onClick={() => handleAddFeedback(student)}
-                          >
-                            Remarques
-                          </button>
-                        </>
-                      )}
-                      {activeTab === "encadrant" && hasReport && (
                         <button
-                          className="text-yellow-400 hover:text-yellow-300"
                           onClick={() => handleAddFeedback(student)}
+                          className="px-3 py-1 bg-yellow-900/50 text-yellow-300 rounded hover:bg-yellow-800 text-sm border border-yellow-800"
                         >
-                          Remarques
+                          Corriger
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                      </>
+                    )}
+
+                    {/* Actions Spécifiques ENCADRANT (peut commenter mais pas valider) */}
+                    {activeTab === 'encadrant' && (student.report || student.reportStatus !== 'Non déposé') && (
+                      <button
+                        onClick={() => handleAddFeedback(student)}
+                        className="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 text-sm border border-gray-600"
+                      >
+                        Note
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     );
   };
+
+  if (loading) return <div className="text-white text-center mt-20">Chargement...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#0a0e27] text-white">
@@ -297,72 +267,62 @@ export default function ReportReview() {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Gestion des Rapports et Soutenances</h1>
 
-        <div className="mb-6">
-          <div className="border-b border-gray-700">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "encadrant"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700"
-                  }`}
-                onClick={() => setActiveTab("encadrant")}
-              >
-                Étudiants encadrés
-              </button>
-              <button
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "rapporteur"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700"
-                  }`}
-                onClick={() => setActiveTab("rapporteur")}
-              >
-                Rapporteur
-              </button>
-              <button
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "jury"
-                    ? "border-blue-500 text-blue-400"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-700"
-                  }`}
-                onClick={() => setActiveTab("jury")}
-              >
-                Jury de soutenance
-              </button>
-            </nav>
-          </div>
+        {/* --- ONGLETS DE NAVIGATION --- */}
+        <div className="flex space-x-4 mb-6 border-b border-gray-700">
+          <button
+            onClick={() => setActiveTab("encadrant")}
+            className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 ${activeTab === "encadrant" ? "border-blue-500 text-blue-400" : "border-transparent text-gray-400 hover:text-white"
+              }`}
+          >
+            Mes Étudiants (Encadrant)
+          </button>
+          <button
+            onClick={() => setActiveTab("rapporteur")}
+            className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 ${activeTab === "rapporteur" ? "border-blue-500 text-blue-400" : "border-transparent text-gray-400 hover:text-white"
+              }`}
+          >
+            Rapports à Évaluer (Rapporteur)
+          </button>
+          <button
+            onClick={() => setActiveTab("jury")}
+            className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 ${activeTab === "jury" ? "border-blue-500 text-blue-400" : "border-transparent text-gray-400 hover:text-white"
+              }`}
+          >
+            Mes Jurys
+          </button>
         </div>
 
+        {/* --- CONTENU --- */}
         {renderStudentList(students[activeTab])}
 
-        {/* Modal pour ajouter des remarques */}
-        {showFeedbackModal && selectedReport && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg">
-              <h2 className="text-xl font-semibold mb-4">Remarques sur le rapport</h2>
-              <p className="mb-4 text-gray-300">
-                Étudiant: <span className="font-medium">{selectedReport.student?.user?.name || 'N/A'}</span>
+        {/* --- MODALE DE FEEDBACK --- */}
+        {showFeedbackModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-2xl border border-gray-700">
+              <h3 className="text-xl font-bold mb-4">Ajouter une remarque</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Cette remarque sera visible par l'étudiant. Si vous demandez une correction, soyez précis.
               </p>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-400 mb-1">Vos remarques</label>
-                <textarea
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 h-32"
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  placeholder="Détaillez les points à améliorer dans le rapport..."
-                ></textarea>
-              </div>
-              <div className="flex justify-end space-x-3">
+
+              <textarea
+                className="w-full bg-gray-900 border border-gray-700 rounded p-3 text-white h-32 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Ex: Le chapitre 3 manque de détails, merci de revoir la bibliographie..."
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+              />
+
+              <div className="flex justify-end mt-4 gap-3">
                 <button
-                  className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
                   onClick={() => setShowFeedbackModal(false)}
+                  className="px-4 py-2 rounded text-gray-300 hover:bg-gray-700"
                 >
                   Annuler
                 </button>
                 <button
-                  className="btn-primary px-4 py-2"
                   onClick={handleSubmitFeedback}
-                  disabled={!feedback.trim()}
+                  className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white font-medium shadow-lg shadow-blue-500/30"
                 >
-                  Envoyer les remarques
+                  Envoyer
                 </button>
               </div>
             </div>

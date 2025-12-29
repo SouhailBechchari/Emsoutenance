@@ -6,10 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 
+/**
+ * Contrôleur de Gestion des Messages de Contact
+ *
+ * Ce contrôleur permet à l'administrateur de lire, gérer et supprimer
+ * les messages envoyés depuis le formulaire de contact du site.
+ */
 class ContactMessageController extends Controller
 {
     /**
-     * Get all contact messages
+     * Liste tous les messages de contact.
+     * Triés du plus récent au plus ancien.
      */
     public function index()
     {
@@ -18,12 +25,12 @@ class ContactMessageController extends Controller
         return response()->json([
             'data' => $messages,
             'total' => $messages->count(),
-            'unread' => $messages->where('is_read', false)->count(),
+            'unread' => $messages->where('is_read', false)->count(), // Compteur de non-lus
         ]);
     }
 
     /**
-     * Get a single contact message
+     * Affiche un message spécifique.
      */
     public function show($id)
     {
@@ -35,7 +42,7 @@ class ContactMessageController extends Controller
     }
 
     /**
-     * Mark a message as read
+     * Marque un message comme "Lu".
      */
     public function markAsRead($id)
     {
@@ -49,7 +56,7 @@ class ContactMessageController extends Controller
     }
 
     /**
-     * Mark a message as unread
+     * Marque un message comme "Non lu".
      */
     public function markAsUnread($id)
     {
@@ -63,7 +70,7 @@ class ContactMessageController extends Controller
     }
 
     /**
-     * Delete a contact message
+     * Supprime un message.
      */
     public function destroy($id)
     {

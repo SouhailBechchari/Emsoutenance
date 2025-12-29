@@ -3,6 +3,14 @@ import { useAuth } from "../../auth/AuthContext";
 import Navbar from "../../components/Navbar";
 import api from "../../services/api";
 
+/**
+ * Page de Profil Professeur
+ * 
+ * Permet au professeur de :
+ * - Voir ses informations personnelles (Nom, Email, Département)
+ * - Changer son mot de passe
+ * Note : Les informations principales (Nom, Email) ne sont pas modifiables ici pour des raisons de sécurité.
+ */
 export default function ProfessorProfile() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);

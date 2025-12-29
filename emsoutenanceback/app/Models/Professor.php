@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Modèle Professeur
+ *
+ * Contient les informations professionnelles :
+ * - Spécialité, Département (si applicable)
+ * - Listes des étudiants encadrés et rapportés
+ *
+ * Il est lié à un `User` pour l'authentification.
+ */
 class Professor extends Model
 {
     use HasFactory;
